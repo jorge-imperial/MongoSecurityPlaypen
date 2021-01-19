@@ -4,15 +4,8 @@
   vars_files:
     - vars/external_vars.yml
   tasks:
-    - name: Fix internal network
-      include_tasks: tasks/fix_internal_network.yml
-      become: yes
-      become_method: sudo
-
     - name: Populate /etc/hosts file with hostname entries for all VMs
       include_tasks: tasks/set_hosts.yml
-      become: yes
-      become_method: sudo
 
     - name: Set the Ceritifcate/LDAP Distinguished Names
       include_tasks: tasks/set_distinguished_names.yml

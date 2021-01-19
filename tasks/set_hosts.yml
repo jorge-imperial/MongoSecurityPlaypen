@@ -4,6 +4,7 @@
 # 
 
 - template: src=files/os/extrahosts.j2 dest=/vagrant/tmp/extrahosts
+  become: yes
 
 - replace: dest=/vagrant/tmp/extrahosts regexp='^centralit:'
   when: ansible_hostname != "centralit"
@@ -36,6 +37,7 @@
   when: ansible_hostname == "client"
 
 - shell: cat /vagrant/tmp/extrahosts >> /etc/hosts
+  become: true
 
 - file: path=/vagrant/tmp/extrahosts state=absent
 
