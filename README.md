@@ -4,11 +4,12 @@ MongoSecurityPlaypen is intended to be used for learning, exploring or demo'ing 
 
 **WARNING** *This project is intentionally NOT "production secure" to make it easier for people to explore. For example, no firewalls are configured and passwords are passed around on the command line which can be view-able in OS user history and OS process lists. Other potential security holes are likely to exist. It is strongly suggested that you consult the [MongoDB Security Checklist](https://docs.mongodb.com/manual/administration/security-checklist/).* 
 
-The project demonstrates the following MongoDB 3.4 security capabilities.
+The project demonstrates the following MongoDB 3.6 security capabilities.
 
 * __Client Authentication__ - SCRAM-SHA-1, Certificate, LDAP (Proxy & Direct) & Kerberos
 * __Internal Authentication__ - Keyfile & Certificate
 * __Role Based Access Control__ - Internal-DB & External-LDAP authorization
+* __User Access IP Address Whitelists__
 * __Auditing__
 * __Log Redaction__
 * __Encryption-over-the-Wire__ - TLS/SSL
@@ -37,14 +38,14 @@ Ensure the following dependencies are already fulfilled on the host Laptop/PC:
 
 ### 1.2 Main Steps to Run
 
-1. Clone this repository, e.g.
+1. Download or Clone this repository (see green "Clone or Download" button at top right of project home page). Example command to clone:
 
     ```
-    $ git clone git@github.com:pkdone/MongoSecurityPlaypen.git
+    $ git clone https://github.com/pkdone/MongoSecurityPlaypen.git
     $ cd MongoSecurityPlaypen
     ```
 
-2. If required, change any values in the text file __vars/external_vars.yml__ to define which security features should be turned on and off
+2. If required, change any values in the text file __vars/external_vars.yml__ to define which __security features should be turned on and off__ (e.g. to enable Kerberos, to enable KMIP)
 3. From the terminal/shell, ensure the current directory is the __base directory__ of this MongoSecurityPlaypen project (i.e. the directory containing the file __Vagrantfile__)
 4. __Run the following commands__ to configure the 5-virtual-machine environment outlined in the diagram above - includes final step of automatically running the Test Client Python Application and listing the results in the console:
 
@@ -68,13 +69,13 @@ Ensure the following dependencies are already fulfilled on the host Laptop/PC:
     # Connect to the VM hosting OpenLDAP, MIT Kerberos KDC and PyKMIP Server
     $ vagrant ssh centralit
 
-    # Connect to the VM hosting the 1st MongoDB Database Replica in the Replica-Set
+    # Connect to the VM hosting the 1st MongoDB Database Replica in the Replica Set
     $ vagrant ssh dbnode1
 
-    # Connect to the VM hosting the 2nd MongoDB Database Replica in the Replica-Set
+    # Connect to the VM hosting the 2nd MongoDB Database Replica in the Replica Set
     $ vagrant ssh dbnode2
 
-    # Connect to the VM hosting the 3rd MongoDB Database Replica in the Replica-Set
+    # Connect to the VM hosting the 3rd MongoDB Database Replica in the Replica Set
     $ vagrant ssh dbnode3
 
     # Connect to the VM hosting the Test Client Python Application
@@ -103,6 +104,7 @@ To completely remove the VMs, ready to start all over again with 'vagrant up', r
 Each sub-section below outlines a specific way to connect to the MongoDB cluster, depending on the type of MongoDB authentication that has been configured for the cluster.
 
 **Notes:**
+ * Users must connect to the Replica Set from one of the following IP addresses, due to an IP Address Whitelist that has been defined to apply to all database users: 127.0.0.1, 192.168.14.100, 192.168.14.101, 192.168.14.102, 192.168.14.103, 192.168.14.109.
  * For some types of authentication, when connecting via the Mongo Shell, Fully Qualified Domain Names - FQDNs (eg. dbnode1.vagrant.dev), need to be used rather than just hostnames (eg. dbnode1, localhost) or IP addresses (eg. 192.168.14.101, or 127.0.0.1). This is necessary when using Kerberos, Certificates and/or TLS.
  * For some types of authentication, when invoking the Mongo Shell, the 'mongo' command has to be run as the 'mongod' OS user because a referenced file (such as a keyfile/certificate or a Kerberos keytab), has been "locked down" to only be visible to the 'mongod' OS user that runs the 'mongod' OS process. Hence the use of 'sudo' in those cases.
 
@@ -215,6 +217,13 @@ Once authenticated in the Shell (see section 2.3), to see the authenticated user
 
     > db.getSiblingDB("admin").runCommand({connectionStatus:1})
 
+Also, once authenticated in the Shell, some of the system collections can also be queried to see further information about the admin and sample users/roles, including what the client IP address whitelist is, which each of them has been constrained by, for restricting user access to the replica set: 
+
+    // If authentication based on LDAP Direct with dynamic role membership authorization using groups in the LDAP directory:
+    > db.getSiblingDB("admin").system.roles.find().pretty()
+    // For all other types of authentication:
+    > db.getSiblingDB("admin").system.users.find().pretty()
+
 The MongoDB database/collection that is populated with sample data is: 'maindata.people'. To see the contents of the sample database collection, start the Mongo Shell (see section 2.3) and run:
 
     > use maindata
@@ -308,10 +317,10 @@ If Kerberos has been configured, and vagrant halt & up have been run to restart 
 
 
 ## 3  Major Software Packages Installed
-* CentOS 7.1
-* MongoDB Enterprise latest 3.4.x version (was version 3.4.0-1 on 29-Nov-2016)
-* OpenLDAP (slapd) latest version in CentOS 7.1 Yum Repository (was version 2.4.40-9 on 29-Nov-2016)
-* MIT Kerberos KDC (krb5-server) latest version in CentOS 7.1 Yum Repository (was version 1.13.2-12 on 29-Nov-2016)
+* CentOS 7.3
+* MongoDB Enterprise latest 3.6.x version (was version 3.6.0 on 05-Dec-2017)
+* OpenLDAP (slapd) latest version in CentOS 7.3 Yum Repository (was version 2.4.44-5 on 05-Dec-2017)
+* MIT Kerberos KDC (krb5-server) latest version in CentOS 7.3 Yum Repository (was version 1.15.1-8 on 05-Dec-2017)
 * PyKMIP version 0.4.0
 
 
@@ -320,7 +329,6 @@ If Kerberos has been configured, and vagrant halt & up have been run to restart 
 * PyKMIP has no built-in persistence, so if vagrant halt and then vagrant up have been run, the mongod replicas won't start properly, if encryption is enabled using KMIP. As a result, vars/external_vars.yml has been changed to use keyfile by default, for encryption-at-rest, to reduce the number of people that hit this issue.
 * When generating the Kerberos keytab on the 'centralit' VM, generate separate keytabs for dbnode1, dbnode2 & dbnode3 for better security isolation
 * Configure connectivity (both Proxy and Direct) to Open LDAP to use TLS
-* Use more elegant way of waiting for replica-set primary to be ready, rather than pausing for 30 seconds and then hoping it is ready
 * Extend the 'yum' timeout duration, to avoid timeout failures when running 'vagrant up' with a slow internet connection.
 * Cache the MongoDB Enterprise yum repository's contents locally ready for quicker re-running of 'vagrant up'
 

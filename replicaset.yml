@@ -8,10 +8,10 @@
   become_user: mongod
   tasks:
     - name: Set Mongo Shell command line params
-      include: tasks/set_mongoshell_params.yml
+      include_tasks: tasks/set_mongoshell_params.yml
 
     - name: Set the Ceritifcate/LDAP Distinguished Names
-      include: tasks/set_distinguished_names.yml
+      include_tasks: tasks/set_distinguished_names.yml
 
     - name: Obtain Kerberos ticket for MongoDB admin user to be able to connect to replica set
       shell: echo {{ db_adminuser_password }} | kinit {{ db_adminuser_name }} -V
@@ -26,9 +26,8 @@
         - create_normal_user_and_role.js
         - reset_priorities.js
 
-    - name: Configure replica set cluster then pause to allow primary to come up properly
+    - name: Configure replica set cluster waiting until the primary has come up properly
       command: mongo {{ connect_string }} /tmp/configure_replicaset.js
-    - pause: seconds=30
 
     - name: Run Mongo shell scripts for creating users and sample data
       command: mongo {{ connect_string }} /tmp/{{ item }}
