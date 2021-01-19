@@ -6,8 +6,8 @@
   become: yes
   become_method: sudo
   tasks:
-    - name: Fix internal network
-      include_tasks: tasks/fix_internal_network.yml
+          #    - name: Fix internal network
+          #      include_tasks: tasks/fix_internal_network.yml
 
     - name: Clear out tmp files
       include_tasks: tasks/clean_tmp_files.yml

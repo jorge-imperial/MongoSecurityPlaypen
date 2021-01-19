@@ -4,5 +4,5 @@
 # this or a previious run
 # 
 
-- shell: rm -rf /vagrant/tmp/*
-
+- file: path=/vagrant/tmp/*  state=absent
+  #- shell: rm -rf /vagrant/tmp/*

@@ -36,6 +36,7 @@
   when: ansible_hostname == "client"
 
 - shell: cat /vagrant/tmp/extrahosts >> /etc/hosts
+  become: yes
 
 - file: path=/vagrant/tmp/extrahosts state=absent
 

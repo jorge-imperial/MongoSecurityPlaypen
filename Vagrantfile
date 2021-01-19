@@ -3,22 +3,22 @@
 
 # Main Vagrant Configuration for MongoSecurityPlaypen
 Vagrant.configure(2) do |config|
-    # Install Centos 7.3
-    config.vm.box = "bento/centos-7.3"
+    # Install Centos 7
+    config.vm.box = "bento/centos-7"
 
     # Set higher timeout for waiting for each VM to come up
     config.vm.boot_timeout = 600
 
     # Workaround for Vagrant 1.8.5 bug, see: https://github.com/mitchellh/vagrant/issues/7610
-    config.ssh.insert_key = false
+    #config.ssh.insert_key = false
 
     # CentrailIT VM
     config.vm.define :centralit do |centralit|
         centralit.vm.provider "virtualbox" do |vb|
             vb.name = "centralit"
-            vb.memory = 512
+            vb.memory = 2048
             # Workaround for some VBox 5.x versions bug, see: https://github.com/chef/bento/issues/688
-            vb.customize ["modifyvm", :id, "--cableconnected1", "on"]
+            #vb.customize ["modifyvm", :id, "--cableconnected1", "on"]
         end
 
         centralit.vm.hostname = "centralit.vagrant.dev"
@@ -39,9 +39,9 @@ Vagrant.configure(2) do |config|
         config.vm.define "dbnode#{node}" do |server|
             server.vm.provider "virtualbox" do |vb|
                 vb.name = "dbnode#{node}"
-                vb.memory = 512
+                vb.memory = 2048
                 # Workaround for some VBox 5.x versions bug, see: https://github.com/chef/bento/issues/688
-                vb.customize ["modifyvm", :id, "--cableconnected1", "on"]
+                #vb.customize ["modifyvm", :id, "--cableconnected1", "on"]
             end
 
             server.vm.hostname = "dbnode#{node}.vagrant.dev"
@@ -64,9 +64,9 @@ Vagrant.configure(2) do |config|
     config.vm.define :client do |client|
         client.vm.provider "virtualbox" do |vb|
             vb.name = "client"
-            vb.memory = 512
+            vb.memory = 2048
             # Workaround for some VBox 5.x versions bug, see: https://github.com/chef/bento/issues/688
-            vb.customize ["modifyvm", :id, "--cableconnected1", "on"]
+            #vb.customize ["modifyvm", :id, "--cableconnected1", "on"]
         end
 
         client.vm.hostname = "client.vagrant.dev"
